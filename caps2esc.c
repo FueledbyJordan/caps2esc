@@ -4,13 +4,15 @@
 #include <unistd.h>
 #include <linux/input.h>
 
+// confusingly, linux refers to what is colloquially known as super as meta
+// https://github.com/PixlOne/logiops/issues/201
 // clang-format off
 const struct input_event
 syn       = {.type = EV_SYN , .code = SYN_REPORT   , .value = 0},
 esc_up    = {.type = EV_KEY , .code = KEY_ESC      , .value = 0},
-ctrl_up   = {.type = EV_KEY , .code = KEY_LEFTCTRL , .value = 0},
+meta_up   = {.type = EV_KEY , .code = KEY_LEFTMETA , .value = 0},
 esc_down  = {.type = EV_KEY , .code = KEY_ESC      , .value = 1},
-ctrl_down = {.type = EV_KEY , .code = KEY_LEFTCTRL , .value = 1};
+meta_down = {.type = EV_KEY , .code = KEY_LEFTMETA , .value = 1};
 // clang-format on
 
 void print_usage(FILE *stream, const char *program) {
@@ -24,12 +26,12 @@ void print_usage(FILE *stream, const char *program) {
             "    -h         show this message and exit\n"
             "    -t         delay used for key sequences (default: 20000 microseconds)\n"
             "    -m mode    0: default\n"
-            "                  - caps as esc/ctrl\n"
+            "                  - caps as esc/super\n"
             "                  - esc as caps\n"
             "               1: minimal\n"
-            "                  - caps as esc/ctrl\n"
+            "                  - caps as esc/super\n"
             "               2: useful on 60%% layouts\n"
-            "                  - caps as esc/ctrl\n"
+            "                  - caps as esc/super\n"
             "                  - esc as grave accent\n"
             "                  - grave accent as caps\n",
             program);
@@ -85,7 +87,7 @@ int main(int argc, char *argv[]) {
     }
 
     struct input_event input;
-    enum { START, CAPSLOCK_HELD, CAPSLOCK_IS_CTRL } state = START;
+    enum { START, CAPSLOCK_HELD, CAPSLOCK_IS_META } state = START;
 
     setbuf(stdin, NULL), setbuf(stdout, NULL);
 
@@ -118,17 +120,17 @@ int main(int argc, char *argv[]) {
                     }
                 } else if ((input.type == EV_KEY && input.value == 1) ||
                            input.type == EV_REL || input.type == EV_ABS) {
-                    write_event(&ctrl_down);
+                    write_event(&meta_down);
                     write_event(&syn);
                     usleep(delay);
                     write_event_with_mode(&input, mode);
-                    state = CAPSLOCK_IS_CTRL;
+                    state = CAPSLOCK_IS_META;
                 } else
                     write_event_with_mode(&input, mode);
                 break;
-            case CAPSLOCK_IS_CTRL:
+            case CAPSLOCK_IS_META:
                 if (input.type == EV_KEY && input.code == KEY_CAPSLOCK) {
-                    input.code = KEY_LEFTCTRL;
+                    input.code = KEY_LEFTMETA;
                     write_event(&input);
                     if (input.value == 0)
                         state = START;

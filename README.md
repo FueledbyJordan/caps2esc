@@ -1,5 +1,12 @@
 # caps2esc
 
+## Note
+This is a fork of the original caps2esc.  The goal of this fork is simple, replace any instance of the ctrl remap to super.  This is particularly useful for folks that use the super key as their window manager mod key.
+
+Pretty much substitute ctrl with super anywhere in the original readme below.
+
+## Original README
+
 _Transforming the most useless key **ever** in the most useful one._
 <sub>_For vi/Vim/NeoVim addicts at least_.</sub>
 
